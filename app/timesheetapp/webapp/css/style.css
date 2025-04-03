@@ -1,0 +1,24 @@
+/* Ensure margin is set properly */
+.sapMSplitContainerDetail .sapUiResponsiveMargin {
+    margin: 0rem !important;
+}
+
+/* Adjust row height in compact mode */
+.sapUiSizeCompact .sapMListTblRow {
+    height: 3rem !important;
+}
+
+/* Set the width of the Master container */
+div#container-timesheetapp---View1--SplitContDemo-Master {
+    width: 40% !important;
+    display: inline-block; /* Helps maintain proper layout */
+}
+
+/* Ensure margin and height styles are enforced inside the Master container */
+div#container-timesheetapp---View1--SplitContDemo-Master .sapMSplitContainerDetail .sapUiResponsiveMargin {
+    margin: 0rem !important;
+}
+
+div#container-timesheetapp---View1--SplitContDemo-Master .sapUiSizeCompact .sapMListTblRow {
+    height: 3rem !important;
+}

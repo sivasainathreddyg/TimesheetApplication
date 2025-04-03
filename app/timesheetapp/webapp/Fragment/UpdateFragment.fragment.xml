@@ -1,0 +1,31 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog id="updateEmployeeDialog" title="Update Employee" class="sapUiResponsivePadding">
+        <content>
+            <VBox justifyContent="SpaceBetween" class="sapUiSmallMargin">
+                <Label text="Name"/>
+                <Input id="inpName1" class="sapUiSmallMarginBottom"/>
+
+                <Label text="Client"/>
+                <Input id="inpClient1" class="sapUiSmallMarginBottom"/>
+                
+                <Label text="Project"/>
+                <Input id="inpProject1" class="sapUiSmallMarginBottom"/>
+                
+                <Label text="Client ID"/>
+                <Input id="inpClientId1" class="sapUiSmallMarginBottom"/>
+                
+                <Label text="Start Date"/>
+                <DatePicker id="inpStartDate1" displayFormat="yyyy-MM-dd" class="sapUiSmallMarginBottom"/>
+                
+                <Label text="End Date"/>
+                <DatePicker id="inpEndDate1" displayFormat="yyyy-MM-dd" class="sapUiSmallMarginBottom"/>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button text="Update" type="Emphasized" press="onUpdatebuttonFragment"/>
+        </beginButton>
+        <endButton>
+            <Button text="Cancel" press="onCloseDialog"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>
