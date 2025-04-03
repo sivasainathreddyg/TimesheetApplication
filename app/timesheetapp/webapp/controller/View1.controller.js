@@ -103,112 +103,6 @@ sap.ui.define([
                 }
             });
         },
-
-        // onYearMonthChange: function () {
-        //     var oView = this.getView();
-        //     var sYear = oView.byId("yearComboBox").getSelectedKey();
-        //     var sMonth = oView.byId("monthComboBox").getSelectedKey();
-        //     if (!sYear || !sMonth) return;
-
-        //     var oTable = oView.byId("timesheetTable");
-        //     oTable.destroyColumns();
-        //     oTable.destroyItems();
-
-        //     // Enable scrollable table
-        //     oTable.setFixedLayout(false);
-        //     oTable.setWidth("auto");
-
-        //     // Get number of days in selected month
-        //     var iMonthIndex = new Date(Date.parse(sMonth + " 1, " + sYear)).getMonth();
-        //     var iDaysInMonth = new Date(sYear, iMonthIndex + 1, 0).getDate();
-
-        //     // **Invisible Employee Name Column**
-        //     var oEmployeeColumn = new sap.m.Column({
-        //         header: new sap.m.Text({ text: "Employee Name" }),
-        //         visible: false // Hide the column in UI
-        //     });
-        //     oTable.addColumn(oEmployeeColumn);
-
-        //     for (var i = 1; i <= iDaysInMonth; i++) {
-        //         var oDate = new Date(sYear, iMonthIndex, i);
-        //         var sDay = oDate.toLocaleDateString("en-US", { weekday: "short" });
-
-        //         var oColumn = new sap.m.Column({
-        //             header: new sap.m.Text({ text: sMonth.substring(0, 3) + "-" + (i < 10 ? "0" + i : i) }),
-        //             width: "80px"
-        //         });
-
-        //         oTable.addColumn(oColumn);
-        //     }
-
-        //     oTable.addColumn(new sap.m.Column({
-        //         header: new sap.m.Text({ text: "Total" }),
-        //         width: "120px"
-        //     }));
-
-        //     var oEmployeeModel = this.getView().getModel("EmployeeModel");
-        //     if (!oEmployeeModel) {
-        //         sap.m.MessageToast.show("No Employee Data Available.");
-        //         return;
-        //     }
-
-        //     var aEmployees = oEmployeeModel.getData();
-
-        //     //  Check if aEmployees is an array
-        //     if (!Array.isArray(aEmployees)) {
-        //         sap.m.MessageToast.show("Invalid Employee Data Format.");
-        //         return;
-        //     }
-
-        //     aEmployees.forEach(function (oEmployee) {
-        //         var oRow = new sap.m.ColumnListItem();
-        //         var iTotalHours = 0;
-
-        //         //  Corrected: Use oEmployee.NAME inside the loop
-        //         oRow.addCell(new sap.m.Text({
-        //             text: oEmployee.NAME, // Use the correct property from the employee object
-        //             visible: false // Hide this text field in UI
-        //         }));
-
-        //     for (var i = 1; i <= iDaysInMonth; i++) {
-        //         var oDate = new Date(sYear, iMonthIndex, i);
-        //         var sDay = oDate.toLocaleDateString("en-US", { weekday: "short" });
-
-        //         var oCell;
-        //         if (sDay === "Sat" || sDay === "Sun") {
-        //             oCell = new sap.m.Input({ value: "", editable: false, width: "60px" }); // Non-editable for weekends
-        //         } else {
-        //             oCell = new sap.m.Input({
-        //                 value: "8",
-        //                 editable: true,
-        //                 width: "60px",
-        //                 change: function (oEvent) {
-        //                     this.onCellValueChange(oEvent);
-        //                 }.bind(this) //  Bind to the controller
-        //             });
-        //             iTotalHours += 8;
-        //         }
-
-        //         oRow.addCell(oCell);
-        //     }
-
-        //     oRow.addCell(new sap.m.Input({
-        //         value: iTotalHours.toString(),
-        //         width: "70px"
-        //     }));
-
-        //     oTable.addItem(oRow);
-        // }, this);
-
-        // // **Reset Leave Count for all Employees**
-        // aEmployees.forEach(function (oEmp) {
-        //     oEmp.leaveCount = 0;
-        // });
-
-        // // **Update Model & Refresh**
-        // oEmployeeModel.refresh(true); // Ensure UI updates
-        // this.updateChart();
-        // },
         onYearMonthChange: function () {
             var oView = this.getView();
             var sYear = oView.byId("yearComboBox").getSelectedKey();
@@ -457,6 +351,8 @@ sap.ui.define([
 
         OnDownloaddata: async function () {
             try {
+                this.getView().byId("SplitContDemo").setBusyIndicatorDelay(0);
+                this.getView().byId("SplitContDemo").setBusy(true);
                 var oEmployeeTable = this.getView().byId("employeeTable");
                 var oTimesheetTable = this.getView().byId("timesheetTable");
                 var oVizFrame = this.getView().byId("leaveChart"); // Chart reference
@@ -599,31 +495,12 @@ sap.ui.define([
                         File.save(blob, "Timesheet.xlsx");
                     });
                 }
+                this.getView().byId("SplitContDemo").setBusy(false);
             } catch (error) {
                 console.error("Error generating Excel:", error);
                 MessageToast.show("Error generating Excel file.");
             }
         },
-        // onCreateEmployee: function () {
-        //     var oView = this.getView();
-
-        //     // Create fragment if it doesn't exist
-        //     if (!this.pDialog) {
-        //         this.pDialog = Fragment.load({
-        //             id: oView.getId(),
-        //             name: "timesheetapp.Fragment.CreateFragment",
-        //             controller: this
-        //         }).then(function (oDialog) {
-        //             oView.addDependent(oDialog);
-        //             return oDialog;
-        //         });
-        //     }
-
-        //     this.pDialog.then(function (oDialog) {
-        //         oDialog.open();
-        //     });
-        // },
-
         onCreateEmployee: function () {
             if (!this.oDialog) {
                 this.oDialog = sap.ui.xmlfragment("timesheetapp.Fragment.CreateFragment", this);
@@ -673,7 +550,7 @@ sap.ui.define([
                     } else {
                         that.RetriveEmployeeDetails();
                         sap.m.MessageToast.show("Employee created successfully!",)
-                        that.onCloseDialog(); // ✅ Corrected call to onCloseDialog
+                        that.onCloseDialogCreate(); // ✅ Corrected call to onCloseDialog
 
 
                     }
@@ -685,7 +562,7 @@ sap.ui.define([
             })
         },
 
-        onCloseDialog: function () {
+        onCloseDialogCreate: function () {
             // this.getView().byId("newEmployeeDialog").close();
             this.oDialog.close();
         },
@@ -770,6 +647,7 @@ sap.ui.define([
                         sap.m.MessageToast.show(oData.Updateemployee.error);
                     } else {
                         that.RetriveEmployeeDetails();
+                        that.updateChart();
                         sap.m.MessageToast.show("Employee Updated successfully!",)
                         that.onCloseDialog(); // ✅ Corrected call to onCloseDialog
                     }

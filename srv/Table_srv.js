@@ -1,17 +1,33 @@
 const cds = require("@sap/cds");
 
 module.exports = srv => {
+    // srv.on("RetriveEmployeeDetails", async req => {
+    //     try {
+    //         const employees = await cds.transaction(req).run(
+    //             SELECT.from("TIMESHEETAPPLICATION_EMPLOYEEDETAILS")
+    //         );
+
+    //         if (employees.length > 0) {
+    //             return JSON.stringify(employees); // Convert data to JSON string
+    //         } else {
+    //             return JSON.stringify([]); // Return an empty JSON array as a string
+    //         }
+    //     } catch (error) {
+    //         console.error("Error retrieving employees:", error);
+    //         return JSON.stringify({ error: "Failed to retrieve employees" });
+    //     }
+    // });
+
     srv.on("RetriveEmployeeDetails", async req => {
         try {
+            const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+
             const employees = await cds.transaction(req).run(
                 SELECT.from("TIMESHEETAPPLICATION_EMPLOYEEDETAILS")
+                .where(`ENDDATE IS NULL OR ENDDATE >=`, today) // Include employees with no ENDDATE or future ENDDATE
             );
 
-            if (employees.length > 0) {
-                return JSON.stringify(employees); // Convert data to JSON string
-            } else {
-                return JSON.stringify([]); // Return an empty JSON array as a string
-            }
+            return JSON.stringify(employees.length > 0 ? employees : []); // Return filtered employees
         } catch (error) {
             console.error("Error retrieving employees:", error);
             return JSON.stringify({ error: "Failed to retrieve employees" });
