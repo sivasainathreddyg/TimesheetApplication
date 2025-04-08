@@ -33,6 +33,22 @@ module.exports = srv => {
             return JSON.stringify({ error: "Failed to retrieve employees" });
         }
     });
+    srv.on("CheckingEmployeeEnddate", async req => {
+        try {
+            // const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+            const today=req.data.selecteddate;
+
+            const employees = await cds.transaction(req).run(
+                SELECT.from("TIMESHEETAPPLICATION_EMPLOYEEDETAILS")
+                    .where(`ENDDATE IS NULL OR ENDDATE >=`, today) // Include employees with no ENDDATE or future ENDDATE
+            );
+
+            return JSON.stringify(employees.length > 0 ? employees : []); // Return filtered employees
+        } catch (error) {
+            console.error("Error retrieving employees:", error);
+            return JSON.stringify({ error: "Failed to retrieve employees" });
+        }
+    });
     // srv.on("Createnewemployee", async req => {
     //     try {
     //         // const newEmployeedata = JSON.parse(req.data.newemployeedata);
