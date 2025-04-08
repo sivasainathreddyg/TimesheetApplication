@@ -24,7 +24,7 @@ module.exports = srv => {
 
             const employees = await cds.transaction(req).run(
                 SELECT.from("TIMESHEETAPPLICATION_EMPLOYEEDETAILS")
-                .where(`ENDDATE IS NULL OR ENDDATE >=`, today) // Include employees with no ENDDATE or future ENDDATE
+                    .where(`ENDDATE IS NULL OR ENDDATE >=`, today) // Include employees with no ENDDATE or future ENDDATE
             );
 
             return JSON.stringify(employees.length > 0 ? employees : []); // Return filtered employees
@@ -98,45 +98,45 @@ module.exports = srv => {
 
     srv.on("Updateemployee", async req => {
         let updateemployeedata;
-        
+
         try {
             updateemployeedata = JSON.parse(req.data.updateemployeedata);
         } catch (error) {
             return req.error(400, "Invalid update data format.");
         }
-    
-        const Empname = updateemployeedata.Name ; // Ensure correct case matching with CDS entity
-    
+
+        const Empname = updateemployeedata.Name; // Ensure correct case matching with CDS entity
+
         if (!Empname) {
             return req.error(400, "Employee Name is required.");
         }
-    
+
         // Check if the employee exists
         const existingEmployee = await cds.transaction(req).run(
             SELECT.one.from("TIMESHEETAPPLICATION_EMPLOYEEDETAILS").where({ NAME: Empname })
         );
-    
+
         if (!existingEmployee) {
             return req.error(404, `Employee with Name ${Empname} not found.`);
         }
-    
+
         // Perform update
         const updatedRows = await cds.transaction(req).run(
             UPDATE("TIMESHEETAPPLICATION_EMPLOYEEDETAILS")
                 .set({
-                    CLIENT: updateemployeedata.client ,
+                    CLIENT: updateemployeedata.client,
                     PROJECT: updateemployeedata.project,
                     CLIENTID: updateemployeedata.clientId,
                     STARTDATE: updateemployeedata.StartDate,
-                    ENDDATE: updateemployeedata.EndDate  || null
+                    ENDDATE: updateemployeedata.EndDate || null
                 })
                 .where({ NAME: Empname })
         );
-    
+
         if (updatedRows === 0) {
             return req.error(500, "Failed to update employee details.");
         }
-    
+
         return { message: `Employee ${Empname} updated successfully.` };
     });
 
@@ -166,61 +166,71 @@ module.exports = srv => {
     //         console.error("Error on saved Timeshhet:", error);
     //         return { error: "Failed to saved Timesheet" };
     //     }
-        
+
     // })
     srv.on("SaveTimesheetData", async (req) => {
         try {
             if (!req.data || !req.data.Timesheetdata) {
                 return { error: "Missing employee data" };
             }
-    
+
             let Leavedata;
             try {
-                Leavedata = JSON.parse(req.data.Timesheetdata); // ✅ Parse the incoming JSON data
+                Leavedata = JSON.parse(req.data.Timesheetdata);
             } catch (error) {
                 return { error: "Invalid employee data format" };
             }
-    
+
             if (!Array.isArray(Leavedata)) {
                 return { error: "Employee leave data should be an array" };
             }
-    
+
             const db = cds.transaction(req);
             let messages = [];
-    
+
             for (let leaveEntry of Leavedata) {
-                const { Name , Year , Month , LeaveDays  } = leaveEntry;
-                if (!Name || !Year || !Month || !LeaveDays) {
-                    messages.push(`Invalid data for ${Name}, skipping...`);
+                const { Name, Year, Month, LeaveDays, ClientHolidays } = leaveEntry;
+
+                if (!Name || !Year || !Month || LeaveDays === undefined || ClientHolidays === undefined) {
+                    messages.push(`Invalid data for ${Name || "unknown"}, skipping...`);
                     continue;
                 }
-    
-                // Convert leave days string to array
-                let newLeaveDays = LeaveDays.split(",").map(day => day.trim()).filter(day => day);
-                
-                // Fetch existing leave records for the same user and period
-                let existingEntry = await db.run(
+
+                // Convert strings to clean arrays
+                let newLeaveDays = LeaveDays.split(",").map(day => day.trim()).filter(Boolean);
+                let newClientHolidays = ClientHolidays.split(",").map(day => day.trim()).filter(Boolean);
+
+                // Check for existing record
+                let existing = await db.run(
                     SELECT.from("TIMESHEETAPPLICATION_TIMESHEETDATA")
                         .where({ Name, Year, Month })
                 );
-    
-                if (existingEntry.length > 0) {
-                    let existingLeaveDays = existingEntry[0].LEAVEDAYS .split(",").map(day => day.trim()).filter(day => day);
-                    
-                    // Determine added and removed leave days
-                    let addedLeaves = newLeaveDays.filter(day => !existingLeaveDays.includes(day));
-                    let removedLeaves = existingLeaveDays.filter(day => !newLeaveDays.includes(day));
-    
-                    if (addedLeaves.length > 0 || removedLeaves.length > 0) {
-                        let updatedLeaveDays = [...new Set([...existingLeaveDays, ...addedLeaves])].filter(day => !removedLeaves.includes(day));
-                        
+
+                if (existing.length > 0) {
+                    let record = existing[0];
+
+                    let existingLeaveDays = record.LEAVEDAYS?.split(",").map(day => day.trim()).filter(Boolean) || [];
+                    let existingClientHolidays = record.CLIENTHOLIDAYS?.split(",").map(day => day.trim()).filter(Boolean) || [];
+
+                    // Compare LeaveDays
+                    let updatedLeaveDays = [...new Set(newLeaveDays)];
+                    let leaveChanged = updatedLeaveDays.sort().join(",") !== existingLeaveDays.sort().join(",");
+
+                    // Compare ClientHolidays
+                    let updatedClientHolidays = [...new Set(newClientHolidays)];
+                    let clientHolidayChanged = updatedClientHolidays.sort().join(",") !== existingClientHolidays.sort().join(",");
+
+                    if (leaveChanged || clientHolidayChanged) {
                         await db.run(
                             UPDATE("TIMESHEETAPPLICATION_TIMESHEETDATA")
-                                .set({ LEAVEDAYS: updatedLeaveDays.join(",") })
+                                .set({
+                                    LEAVEDAYS: updatedLeaveDays.join(","),
+                                    CLIENTHOLIDAYS: updatedClientHolidays.join(",")
+                                })
                                 .where({ Name, Year, Month })
                         );
-    
-                        messages.push("Timesheetdata saved successfully");
+
+                        messages.push(`Updated timesheet for ${Name}`);
                     } else {
                         messages.push(" No changed Timesheetdata saved successfully");
                     }
@@ -229,18 +239,18 @@ module.exports = srv => {
                     await db.run(
                         INSERT.into("TIMESHEETAPPLICATION_TIMESHEETDATA").entries(leaveEntry)
                     );
-    
+
                     messages.push("Timesheetdata saved successfully");
                 }
             }
-    
+
             return { message: messages.join("\n") };
         } catch (error) {
             console.error("Error saving timesheet:", error);
             return { error: "Failed to save timesheet" };
         }
     });
-    
+
 
     srv.on("GetEmployeeLeave", async req => {
         try {
@@ -248,33 +258,33 @@ module.exports = srv => {
             if (!req.data || !req.data.EmployeeLeaves) {
                 return { error: "Missing employee data" };
             }
-    
+
             let Leavesdata;
             try {
                 Leavesdata = JSON.parse(req.data.EmployeeLeaves); // ✅ Safely parse input
             } catch (error) {
                 return { error: "Invalid employee data format" };
             }
-    
+
             const year = Leavesdata.Year;
             const month = Leavesdata.Month;
-    
+
             // Fetch leave data from the database
             const leaveRecords = await cds.transaction(req).run(
                 SELECT.from("TIMESHEETAPPLICATION_TIMESHEETDATA")
                     .where({ YEAR: year, MONTH: month })
             );
-    
+
             if (!leaveRecords.length) {
                 return { message: "No leave records found for the given year and month." };
             }
-    
+
             return { data: leaveRecords }; // ✅ Return fetched leave data
         } catch (error) {
             console.error("Error getting leaves data:", error);
             return { error: "Failed to get leave data" };
         }
     });
-    
-    
+
+
 };

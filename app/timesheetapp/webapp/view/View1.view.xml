@@ -1,4 +1,4 @@
-    <mvc:View
+<mvc:View
     controllerName="timesheetapp.controller.View1"
     xmlns="sap.m"
     xmlns:mvc="sap.ui.core.mvc"
@@ -6,6 +6,7 @@
     xmlns:viz="sap.viz.ui5.controls"
     xmlns:viz.data="sap.viz.ui5.data"
     xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds"
+    xmlns:unified="sap.ui.unified"
 >
     <SplitContainer
         id="SplitContDemo"
@@ -19,22 +20,37 @@
                 title="Employee Details"
                 titleAlignment="Start"
                 backgroundDesign="List"
-                
             >
-            <headerContent>
-               <Toolbar >
-                <ToolbarSpacer ></ToolbarSpacer>
-                <Button id="Oncreateid" text="Create" type="Emphasized" press="onCreateEmployee"></Button>
-                <Button id="OnUpdateid" text="Update" type="Emphasized" press="onUpdateEmployee" enabled="false"></Button>
-                
-                </Toolbar>
-            </headerContent>
+                <headerContent>
+                    <Toolbar>
+                        <ToolbarSpacer />
+                        <Button
+                            id="Oncreateid"
+                            text="Create"
+                            type="Emphasized"
+                            press="onCreateEmployee"
+                        />
+                        <Button
+                            id="OnUpdateid"
+                            text="Update"
+                            type="Emphasized"
+                            press="onUpdateEmployee"
+                            enabled="false"
+                        />
+                    </Toolbar>
+                </headerContent>
                 <content>
                     <!-- <Table
                         id="employeeTable"
                         items="{/employees}"
                     > -->
-                    <Table id="employeeTable" items="{EmployeeModel>/}" mode="SingleSelectLeft" itemPress="onEmployeeSelect" selectionChange="onEmployeeSelect">
+                    <Table
+                        id="employeeTable"
+                        items="{EmployeeModel>/}"
+                        mode="SingleSelectLeft"
+                        itemPress="onEmployeeSelect"
+                        selectionChange="onEmployeeSelect"
+                    >
                         <columns>
                             <Column>
                                 <Text text="Name" />
@@ -50,7 +66,7 @@
                             </Column>
                         </columns>
                         <items>
-                            <ColumnListItem> 
+                            <ColumnListItem>
                                 <cells>
                                     <Text text="{EmployeeModel>NAME}" />
                                     <Text text="{EmployeeModel>CLIENT}" />
@@ -66,7 +82,6 @@
                         width="100%"
                         height="400px"
                         vizType="column"
-                       
                     >
                         <viz:dataset>
                             <viz.data:FlattenedDataset data="{EmployeeModel>/}">
@@ -97,7 +112,6 @@
                                 values="Employee"
                             />
                         </viz:feeds>
-                        
                     </viz:VizFrame>
                 </content>
             </Page>
@@ -114,7 +128,7 @@
                     <Toolbar>
                         <Title text="" />
                         <ToolbarSpacer />
-                        <ComboBox
+                        <!-- <ComboBox
                             id="yearComboBox"
                             items="{/years}"
                             selectionChange="onYearMonthChange"
@@ -137,17 +151,26 @@
                                     text="{month}"
                                 />
                             </items>
-                        </ComboBox>
-                        <Button 
-                        id="Timesheetsaveid"
-                        text="Save"
-                        type="Emphasized"
-                        press="OnSaveTimeSheetData"
-                        enabled="false"></Button>
+                        </ComboBox> -->
+                        <DatePicker
+                                id="Datepickeridfortable"
+                                change="onYearMonthChange"
+                                placeholder="Select year and month"
+                                displayFormat="MMMM yyyy"
+                            />
                         <Button
+                            id="Timesheetsaveid"
+                            text="Save"
+                            type="Emphasized"
+                            press="OnSaveTimeSheetData"
+                            enabled="false"
+                        />
+                        <Button
+                            id="Timesheetdownloadid"
                             text="Download"
                             type="Emphasized"
                             press="OnDownloaddata"
+                            enabled="false"
                         />
                     </Toolbar>
                 </headerContent>
@@ -163,6 +186,57 @@
                             width="auto"
                             class="sapUiResponsiveMargin"
                         />
+                        <!-- 📅 Calendar to select holidays -->
+                        <Panel
+                            headerText="Client Holidays"
+                            expandable="true"
+                            expanded="false"
+                        >
+                            <DatePicker
+                                id="clientHolidayPicker"
+                                change="onClientHolidaySelected"
+                                placeholder="Select Client Holiday"
+                            />
+                        </Panel>
+
+                        <!-- 📊 Chart for Holidays -->
+                        <viz:VizFrame
+                            id="clientHolidayChart"
+                            width="100%"
+                            height="300px"
+                            vizType="column"
+                        >
+                            <viz:dataset>
+                                <viz.data:FlattenedDataset
+                                    data="{EmployeeModel>/}"
+                                >
+                                    <viz.data:dimensions>
+                                        <viz.data:DimensionDefinition
+                                            name="Month"
+                                            value="{Month}"
+                                        />
+                                    </viz.data:dimensions>
+                                    <viz.data:measures>
+                                        <viz.data:MeasureDefinition
+                                            name="Client Holidays"
+                                            value="{clientHolidayCount}"
+                                        />
+                                    </viz.data:measures>
+                                </viz.data:FlattenedDataset>
+                            </viz:dataset>
+                            <viz:feeds>
+                                <viz.feeds:FeedItem
+                                    uid="valueAxis"
+                                    type="Measure"
+                                    values="Client Holidays"
+                                />
+                                <viz.feeds:FeedItem
+                                    uid="categoryAxis"
+                                    type="Dimension"
+                                    values="Month"
+                                />
+                            </viz:feeds>
+                        </viz:VizFrame>
                     </ScrollContainer>
                 </content>
             </Page>

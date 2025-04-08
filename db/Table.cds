@@ -6,6 +6,7 @@ entity TimesheetData {
         Year      : Integer;
         Month     : String;
         LeaveDays : String;
+        ClientHolidays:String;
 }
 
 entity EmployeeDetails {

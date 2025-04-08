@@ -40,7 +40,7 @@ sap.ui.define([
                             text: "Number of Leaves" //  Add Y-axis title
                         },
                         label: {
-                            formatString: "L0" //  Ensure whole numbers are shown
+                            formatString: "0" //  Ensure whole numbers are shown
                         },
                         scale: {
                             fixedRange: true, //  Prevents auto-scaling
@@ -61,7 +61,53 @@ sap.ui.define([
                     plotArea: {
                         dataLabel: {
                             visible: true, //  Show values on bars
-                            formatString: "L0" //  Whole numbers
+                            formatString: "0" //  Whole numbers
+                        },
+                        colorPalette: d3.scale.category10().range(), //  Different colors for each bar
+                        gap: {
+                            barSpacing: 0.2 //  Adjust spacing between bars
+                        },
+                        gridline: {
+                            visible: true //  Show grid lines for better readability
+                        }
+                    }
+                });
+            }
+            var oVizFrame = this.getView().byId("clientHolidayChart");
+            if (oVizFrame) {
+                oVizFrame.setVizProperties({
+                    title: {
+                        visible: true,
+                        text: "Client Holidays" //  Set title of the chart
+                    },
+                    valueAxis: {
+                        title: {
+                            visible: true,
+                            text: "Number of Holidays" //  Add Y-axis title
+                        },
+                        label: {
+                            formatString: "0" //  Ensure whole numbers are shown
+                        },
+                        scale: {
+                            fixedRange: true, //  Prevents auto-scaling
+                            minValue: 0,
+                            maxValue: 4 //  Adjust based on max expected leaves
+                        }
+                    },
+                    categoryAxis: {
+                        title: {
+                            visible: true,
+                            text: "Month" //  Add X-axis title
+                        },
+                        label: {
+                            angle: 0, //  Ensures horizontal text (instead of vertical)
+                            rotation: 0
+                        }
+                    },
+                    plotArea: {
+                        dataLabel: {
+                            visible: true, //  Show values on bars
+                            formatString: "0" //  Whole numbers
                         },
                         colorPalette: d3.scale.category10().range(), //  Different colors for each bar
                         gap: {
@@ -103,10 +149,17 @@ sap.ui.define([
                 }
             });
         },
-        onYearMonthChange: function () {
+        onYearMonthChange: function (oEvent) {
+            // var sValue = oEvent.getParameter("value"); // formatted display value
+            var oDate = oEvent.getSource().getDateValue(); // actual JS Date object
+            if (oDate) {
+                // var sMonth = oDate.getMonth() + 1; // 0-based
+                var sMonth = oDate.toLocaleString("default", { month: "long" });
+                var sYear = oDate.getFullYear();
+            }
             var oView = this.getView();
-            var sYear = oView.byId("yearComboBox").getSelectedKey();
-            var sMonth = oView.byId("monthComboBox").getSelectedKey();
+            // var sYear = oView.byId("yearComboBox").getSelectedKey();
+            // var sMonth = oView.byId("monthComboBox").getSelectedKey();
             if (!sYear || !sMonth) return;
 
             var oTable = oView.byId("timesheetTable");
@@ -175,6 +228,7 @@ sap.ui.define([
                             var oRow = new sap.m.ColumnListItem();
                             var iTotalHours = 0;
                             var iLeaveCount = 0;
+                            var iClientHolidayCount=0;
 
                             // **Set Employee Name**
                             oRow.addCell(new sap.m.Text({
@@ -184,26 +238,31 @@ sap.ui.define([
 
                             // **Find Leave Data for Employee**
                             var oEmployeeLeave = aLeaveData.find(e => e.NAME === oEmployee.NAME);
-                            var aLeaveDays = oEmployeeLeave ? oEmployeeLeave.LEAVEDAYS.split(",") : []; // Get leave days as array
-
+                            var aLeaveDays = oEmployeeLeave?.LEAVEDAYS?.split(",").map(d => d.trim()) || [];
+                            var aClientHolidays = oEmployeeLeave?.CLIENTHOLIDAYS?.split(",").map(d => d.trim()) || [];
                             for (var i = 1; i <= iDaysInMonth; i++) {
                                 var oDate = new Date(sYear, iMonthIndex, i);
                                 var sDay = oDate.toLocaleDateString("en-US", { weekday: "short" });
+                                var sDayStr = i < 10 ? "0" + i : i.toString();
 
                                 var oCell;
                                 if (sDay === "Sat" || sDay === "Sun") {
                                     oCell = new sap.m.Input({ value: "", editable: false, width: "60px" }); // Non-editable for weekends
                                 } else {
-                                    var sDayStr = i < 10 ? "0" + i : i.toString(); // Format as two-digit string
-
-                                    // **Set "L" for leave days, "8" otherwise**
-                                    var sValue = aLeaveDays.includes(sDayStr) ? "L" : "8";
-
-                                    // Count leave days
-                                    if (sValue === "L") {
+                                    let sValue = "8";
+                
+                                    if (aLeaveDays.includes(sDayStr)) {
+                                        sValue = "L";
                                         iLeaveCount++;
+                                    } else if (aClientHolidays.includes(sDayStr)) {
+                                        sValue = "H";
+                                        iClientHolidayCount++;
                                     }
-
+                
+                                    if (sValue === "8") {
+                                        iTotalHours += 8;
+                                    }
+                
                                     oCell = new sap.m.Input({
                                         value: sValue,
                                         editable: true,
@@ -212,11 +271,10 @@ sap.ui.define([
                                             that.onCellValueChange(oEvent);
                                         }
                                     });
-
-                                    iTotalHours += sValue === "L" ? 0 : 8; // Add 8 only for non-leave days
                                 }
-
+                
                                 oRow.addCell(oCell);
+                        
                             }
 
                             // **Set Total Hours**
@@ -227,13 +285,17 @@ sap.ui.define([
 
                             // **Update Employee Leave Count for Chart**
                             oEmployee.leaveCount = iLeaveCount;
+                            oEmployee.clientHolidayCount = iClientHolidayCount;
+                            oEmployee.Month=sMonth;
 
                             oTable.addItem(oRow);
                         });
                         oTable.setBusy(false);
-                        that.getView().byId("Timesheetsaveid").setEnabled(true)
+                        that.getView().byId("Timesheetsaveid").setEnabled(true);
+                        that.getView().byId("Timesheetdownloadid").setEnabled(true)
                         oEmployeeModel.refresh(true);
-                        that.updateChart();
+                        that.updateChartEmployeeLeaves();
+                        that.updateChartclientHolidays();
 
                     } else {
                         aEmployees.forEach(function (oEmployee) {
@@ -284,11 +346,15 @@ sap.ui.define([
                         });
                         aEmployees.forEach(function (oEmp) {
                             oEmp.leaveCount = 0;
+                            oEmp.clientHolidayCount=0;
+                            oEmp.Month="";
                         });
                         oTable.setBusy(false);
-                        that.getView().byId("Timesheetsaveid").setEnabled(true)
+                        that.getView().byId("Timesheetsaveid").setEnabled(true);
+                        that.getView().byId("Timesheetdownloadid").setEnabled(true)
                         oEmployeeModel.refresh(true);
-                        that.updateChart();
+                        that.updateChartEmployeeLeaves();
+                        that.updateChartclientHolidays();
 
 
                     }
@@ -336,10 +402,19 @@ sap.ui.define([
             });
 
             // oModel.setProperty("/employees", aEmployees);
-            this.updateChart();
+            this.updateChartEmployeeLeaves();
         },
-        updateChart: function () {
+        updateChartEmployeeLeaves: function () {
             var oChart = this.getView().byId("leaveChart");
+
+
+            // var oModel = this.getView().getModel();
+            var oEmployeeModel = this.getView().getModel("EmployeeModel");
+            oChart.setModel(oEmployeeModel);
+            oChart.getModel().refresh(true);
+        },
+        updateChartclientHolidays: function () {
+            var oChart = this.getView().byId("clientHolidayChart");
 
 
             // var oModel = this.getView().getModel();
@@ -349,95 +424,97 @@ sap.ui.define([
         },
 
 
-        OnDownloaddata: async function () {
+        OnDownloaddata: async function (oEvent) {
             try {
+                const oDate = this.getView().byId("Datepickeridfortable").getDateValue();
+                // let sSelectedMonth = new Date().toLocaleString("default", { month: "long" });
+                // let sSelectedYear = new Date().getFullYear();
+        
+                if (oDate) {
+                    var sSelectedMonth = oDate.toLocaleString("default", { month: "long" });
+                    var sSelectedYear = oDate.getFullYear();
+                }
+        
                 this.getView().byId("SplitContDemo").setBusyIndicatorDelay(0);
                 this.getView().byId("SplitContDemo").setBusy(true);
-                var oEmployeeTable = this.getView().byId("employeeTable");
-                var oTimesheetTable = this.getView().byId("timesheetTable");
-                var oVizFrame = this.getView().byId("leaveChart"); // Chart reference
-                var oYearComboBox = this.getView().byId("yearComboBox");
-                var oMonthComboBox = this.getView().byId("monthComboBox");
-
-                var sSelectedYear = oYearComboBox.getSelectedKey() || new Date().getFullYear();
-                var sSelectedMonth = oMonthComboBox.getSelectedKey() || new Date().toLocaleString("default", { month: "long" });
-
-                var aEmployeeRows = oEmployeeTable.getItems();
-                var aTimesheetRows = oTimesheetTable.getItems();
-                var aColumns = oTimesheetTable.getColumns();
-
+        
+                const oEmployeeTable = this.getView().byId("employeeTable");
+                const oTimesheetTable = this.getView().byId("timesheetTable");
+                const oVizFrame = this.getView().byId("leaveChart");
+                const oVizFrameclient = this.getView().byId("clientHolidayChart");
+        
+                const aEmployeeRows = oEmployeeTable.getItems();
+                const aTimesheetRows = oTimesheetTable.getItems();
+                const aColumns = oTimesheetTable.getColumns();
+        
                 if (!aEmployeeRows.length || !aTimesheetRows.length) {
-                    MessageToast.show("No data available to download.");
+                    sap.m.MessageToast.show("No data available to download.");
+                    this.getView().byId("SplitContDemo").setBusy(false);
                     return;
                 }
-
-                // Initialize Workbook
-                var workbook = new ExcelJS.Workbook();
-                var worksheet = workbook.addWorksheet("Timesheet");
-
-                var aHeaderRow = ["Name", "Client", "Project", "Client ID"];
-                var aDates = [];
-                var aWeekendColumns = [];
-                var sSelectedYear = oYearComboBox.getSelectedKey() || new Date().getFullYear(); // Get selected year
-
-                // Extract column headers dynamically
-                for (var i = 1; i < aColumns.length; i++) {
-
-                    var sDateHeader = aColumns[i].getHeader().getText();
+        
+                // Create workbook and worksheet
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet("Timesheet");
+        
+                const aHeaderRow = ["Name", "Client", "Project", "Client ID"];
+                const aDates = [];
+                const aWeekendColumns = [];
+        
+                // Extract headers
+                for (let i = 1; i < aColumns.length-1; i++) {
+                    const sDateHeader = aColumns[i].getHeader().getText();
                     aHeaderRow.push(sDateHeader);
                     aDates.push(sDateHeader);
-                    var oDate = new Date(`${sSelectedYear} ${sDateHeader}`);
+        
+                    const oDate = new Date(`${sSelectedYear} ${sDateHeader}`);
                     if (oDate.getDay() === 6 || oDate.getDay() === 0) {
                         aWeekendColumns.push(sDateHeader);
                     }
-
                 }
+        
                 aHeaderRow.push("Total");
-
-                // Add Title Row
-                let titleRow = worksheet.addRow([`Timesheet - ${sSelectedMonth} ${sSelectedYear}`]);
+        
+                // Title Row
+                const titleRow = worksheet.addRow([`Timesheet - ${sSelectedMonth} ${sSelectedYear}`]);
                 titleRow.getCell(1).font = { bold: true, size: 14 };
-                worksheet.mergeCells("A1:" + String.fromCharCode(65 + aHeaderRow.length - 1) + "1");
-
-                // Add Empty Row
-                worksheet.addRow([]);
-
-                // Add Header Row with Styling
-                let headerRow = worksheet.addRow(aHeaderRow);
-                headerRow.eachCell((cell, colNumber) => {
+                worksheet.mergeCells(`A1:${String.fromCharCode(65 + aHeaderRow.length - 1)}1`);
+                worksheet.addRow([]); // Empty row
+        
+                // Header Row Styling
+                const headerRow = worksheet.addRow(aHeaderRow);
+                headerRow.eachCell((cell) => {
                     cell.font = { bold: true, color: { argb: "FFFFFF" } };
                     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4F81BD" } };
                     cell.alignment = { horizontal: "center" };
-
                 });
-                worksheet.eachRow((row, rowIndex) => {
+        
+                worksheet.eachRow((row) => {
                     row.eachCell((cell, colIndex) => {
-                        let sColumnHeader = aHeaderRow[colIndex - 1]; // Get the column header
-
-                        // If the column is a weekend, apply gray fill to the entire column
+                        const sColumnHeader = aHeaderRow[colIndex - 1];
                         if (aWeekendColumns.includes(sColumnHeader)) {
                             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "D3D3D3" } };
                         }
                     });
                 });
-
-                var aData = [];
-
-                aTimesheetRows.forEach(function (oTimesheetRow, index) {
-                    var aEmployeeCells = aEmployeeRows[index].getCells();
-                    var aTimesheetCells = oTimesheetRow.getCells();
-
-                    var aRowData = [
+        
+                const aData = [];
+        
+                aTimesheetRows.forEach((oTimesheetRow, index) => {
+                    const aEmployeeCells = aEmployeeRows[index].getCells();
+                    const aTimesheetCells = oTimesheetRow.getCells();
+        
+                    const aRowData = [
                         aEmployeeCells[0].getText(),
                         aEmployeeCells[1].getText(),
                         aEmployeeCells[2].getText(),
                         aEmployeeCells[3].getText()
                     ];
-
-                    for (var j = 1; j < aTimesheetCells.length; j++) {
-                        var oCell = aTimesheetCells[j];
-                        var sCellValue = "";
-
+        
+                    for (let j = 1; j < aTimesheetCells.length; j++) {
+                        const oCell = aTimesheetCells[j];
+                        let sCellValue = "";
+        
                         if (oCell.getMetadata().getName() === "sap.m.Input") {
                             sCellValue = oCell.getValue();
                         } else if (oCell.getMetadata().getName() === "sap.m.Text") {
@@ -447,60 +524,78 @@ sap.ui.define([
                     }
                     aData.push(aRowData);
                 });
-
-                // Add Data Rows
+        
+                // Add data rows
                 aData.forEach((row) => {
-                    let excelRow = worksheet.addRow(row);
+                    const excelRow = worksheet.addRow(row);
                     excelRow.eachCell((cell) => {
                         cell.alignment = { horizontal: "center" };
                     });
                 });
-
-                // Convert Chart to Image and Insert into Excel
-                if (oVizFrame) {
-                    var sSVG = oVizFrame.exportToSVGString();
-                    var canvas = document.createElement("canvas");
-                    var ctx = canvas.getContext("2d");
-                    var img = new Image();
-
-                    img.onload = function () {
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
-                        var chartImage = canvas.toDataURL("image/png");
-
-                        // **STEP 2: Insert Image into Excel Sheet**
-                        var imageId = workbook.addImage({
-                            base64: chartImage.split(",")[1], // Extract base64 data
-                            extension: "png"
-                        });
-
-                        worksheet.addImage(imageId, {
-                            tl: { col: 7, row: aData.length + 7 }, // Position below table
-                            ext: { width: 500, height: 300 }
-                        });
-
-                        //  **STEP 3: Save and Download Excel File**
-                        workbook.xlsx.writeBuffer().then(function (buffer) {
-                            var blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-                            saveAs(blob, "Timesheet.xlsx");
-                        });
-                    };
-
-                    img.src = "data:image/svg+xml;base64," + btoa(sSVG);
-                } else {
-                    // If no chart, just download the Excel file
-                    workbook.xlsx.writeBuffer().then(function (buffer) {
-                        var blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-                        File.save(blob, "Timesheet.xlsx");
+        
+                // Chart image export
+                const loadChartImage = async (vizFrame) => {
+                    return new Promise((resolve) => {
+                        if (!vizFrame) return resolve(null);
+        
+                        const sSVG = vizFrame.exportToSVGString();
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        const img = new Image();
+        
+                        img.onload = function () {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx.drawImage(img, 0, 0);
+                            resolve(canvas.toDataURL("image/png"));
+                        };
+                        img.src = "data:image/svg+xml;base64," + btoa(sSVG);
+                    });
+                };
+        
+                const [chartImage1, chartImage2] = await Promise.all([
+                    loadChartImage(oVizFrame),
+                    loadChartImage(oVizFrameclient)
+                ]);
+        
+                if (chartImage1) {
+                    const imageId1 = workbook.addImage({
+                        base64: chartImage1.split(",")[1],
+                        extension: "png"
+                    });
+                    worksheet.addImage(imageId1, {
+                        tl: { col: 5, row: aData.length + 7 },
+                        ext: { width: 500, height: 300 }
                     });
                 }
+        
+                if (chartImage2) {
+                    const imageId2 = workbook.addImage({
+                        base64: chartImage2.split(",")[1],
+                        extension: "png"
+                    });
+                    worksheet.addImage(imageId2, {
+                        tl: { col: 12, row: aData.length + 7 },
+                        ext: { width: 500, height: 300 }
+                    });
+                }
+        
+                // Save Excel
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], {
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                });
+                saveAs(blob, "Timesheet.xlsx");
+        
                 this.getView().byId("SplitContDemo").setBusy(false);
+        
             } catch (error) {
                 console.error("Error generating Excel:", error);
-                MessageToast.show("Error generating Excel file.");
+                sap.m.MessageToast.show("Error generating Excel file.");
+                this.getView().byId("SplitContDemo").setBusy(false);
             }
         },
+        
         onCreateEmployee: function () {
             if (!this.oDialog) {
                 this.oDialog = sap.ui.xmlfragment("timesheetapp.Fragment.CreateFragment", this);
@@ -550,7 +645,7 @@ sap.ui.define([
                     } else {
                         that.RetriveEmployeeDetails();
                         sap.m.MessageToast.show("Employee created successfully!",)
-                        that.onCloseDialogCreate(); // ✅ Corrected call to onCloseDialog
+                        that.onCloseDialogCreatebbb(); // ✅ Corrected call to onCloseDialog
 
 
                     }
@@ -647,7 +742,7 @@ sap.ui.define([
                         sap.m.MessageToast.show(oData.Updateemployee.error);
                     } else {
                         that.RetriveEmployeeDetails();
-                        that.updateChart();
+                        that.updateChartEmployeeLeaves();
                         sap.m.MessageToast.show("Employee Updated successfully!",)
                         that.onCloseDialog(); // ✅ Corrected call to onCloseDialog
                     }
@@ -710,18 +805,24 @@ sap.ui.define([
         //         }
         //     });
         // }
-        OnSaveTimeSheetData: function () {
+        OnSaveTimeSheetData: function (oEvent) {
+        
             var oTable = this.byId("timesheetTable");
             var aTableItems = oTable.getItems();
 
             var aLeaveData = [];
-            var sYear = this.byId("yearComboBox").getSelectedKey();
-            var sMonth = this.byId("monthComboBox").getSelectedKey();
+            const oDate = this.getView().byId("Datepickeridfortable").getDateValue();
+            if (!oDate) return;
+            const sMonth = oDate.toLocaleString("default", { month: "long" });
+            var sYear=oDate.getFullYear();
 
-            if (!sYear || !sMonth) {
-                sap.m.MessageBox.warning("Please select both Year and Month.");
-                return;
-            }
+            // var sYear = this.byId("yearComboBox").getSelectedKey();
+            // var sMonth = this.byId("monthComboBox").getSelectedKey();
+
+            // if (!sYear || !sMonth) {
+            //     sap.m.MessageBox.warning("Please select both Year and Month.");
+            //     return;
+            // }
 
             aTableItems.forEach((oItem) => {
                 var aCells = oItem.getCells();
@@ -729,6 +830,7 @@ sap.ui.define([
                 // Employee Name is the first hidden cell
                 var sEmployeeName = aCells[0].getText();
                 var aLeaveDays = [];
+                var clientholidays=[];
 
                 // Loop through day-wise input fields
                 for (var i = 1; i < aCells.length - 1; i++) { // Skipping Employee Name & Total column
@@ -737,17 +839,21 @@ sap.ui.define([
                     if (sValue === "L") {
                         aLeaveDays.push(i.toString().padStart(2, "0")); // Format as "01", "02", etc.
                     }
+                    if(sValue==="H"){
+                        clientholidays.push(i.toString().padStart(2,"0"));
+                    }
                 }
 
-                if (aLeaveDays.length > 0) {
+                // if (aLeaveDays.length > 0) {
                     aLeaveData.push({
                         ID: uniqueID,
                         Name: sEmployeeName,
                         Year: parseInt(sYear),
                         Month: sMonth,
-                        LeaveDays: aLeaveDays.join(",") // Store as comma-separated string
+                        LeaveDays: aLeaveDays.join(","), // Store as comma-separated string
+                        ClientHolidays:clientholidays.join(",")
                     });
-                }
+                // }
             });
 
             if (aLeaveData.length === 0) {
@@ -776,7 +882,117 @@ sap.ui.define([
                     sap.m.MessageToast.show(error);
                 }
             });
+        },
+        onClientHolidaySelected: function (oEvent) {
+            const oDate = oEvent.getSource().getDateValue();
+            if (!oDate) return;
+        
+            const oTable = this.byId("timesheetTable");
+            const aRows = oTable.getItems();
+            const aColumns = oTable.getColumns();
+        
+            // Get formatted column header like "Apr-02"
+            const Month=oDate.toLocaleString("default", { month: "long" });
+            const sMonth = oDate.toLocaleString("default", { month: "short" });
+            const sDay = String(oDate.getDate()).padStart(2, "0");
+            const sHeaderMatch = `${sMonth}-${sDay}`;
+        
+            let iTargetColumnIndex = -1;
+        
+            for (let i = 1; i < aColumns.length - 1; i++) {
+                const sHeaderText = aColumns[i].getHeader().getText();
+                if (sHeaderText === sHeaderMatch) {
+                    iTargetColumnIndex = i;
+                    break;
+                }
+            }
+        
+            if (iTargetColumnIndex === -1) {
+                sap.m.MessageToast.show("Selected date not found in the table columns.");
+                return;
+            }
+        
+            // 🔁 Set "H" in cells that have "8"
+            aRows.forEach(oRow => {
+                const oCell = oRow.getCells()[iTargetColumnIndex];
+                if (oCell.getValue() === "8") {
+                    oCell.setValue("H");
+                }
+            });
+        
+            // 🔁 Recalculate total hours after marking holidays
+            aRows.forEach(oRow => {
+                const aCells = oRow.getCells();
+                let iTotalHours = 0;
+        
+                for (let i = 1; i < aCells.length - 1; i++) {
+                    const sValue = aCells[i].getValue();
+                    const iHours = parseFloat(sValue);
+                    if (!isNaN(iHours)) {
+                        iTotalHours += iHours;
+                    }
+                }
+        
+                const oTotalCell = aCells[aCells.length - 1];
+                oTotalCell.setValue(iTotalHours.toString());
+            });
+        
+            // ✅ Collect all holiday headers (marked as "H")
+            const aHolidayDates = [];
+            aRows.forEach(oRow => {
+                const aCells = oRow.getCells();
+                for (let i = 1; i < aCells.length - 1; i++) {
+                    if (aCells[i].getValue() === "H") {
+                        const sHeader = aColumns[i].getHeader().getText(); // e.g., "Apr-22"
+                        if (!aHolidayDates.includes(sHeader)) {
+                            aHolidayDates.push(sHeader);
+                        }
+                    }
+                }
+            });
+
+            var oEmployeeModel = this.getView().getModel("EmployeeModel");
+
+            // var sEmployeeName = oRow.getCells()[0].getText();
+            var aEmployees = oEmployeeModel.getData();// Get Employee Name
+            aEmployees.forEach(function (oEmp) {
+                    oEmp.clientHolidayCount = aHolidayDates.length; // Update leave count
+                    oEmp.Month=Month;
+                    // oEmployee.clientHolidayCount = iClientHolidayCount;
+
+                
+            });
+
+            // oModel.setProperty("/employees", aEmployees);
+            this.updateChartclientHolidays();
+        
+
+        },        
+        
+        // _formatDateKey: function (oDate) {
+        //     const yyyy = oDate.getFullYear();
+        //     const mm = String(oDate.getMonth() + 1).padStart(2, '0');
+        //     const dd = String(oDate.getDate()).padStart(2, '0');
+        //     return `${yyyy}-${mm}-${dd}`;
+        // },
+        
+        _updateHolidayChart: function (sDate) {
+            const oChartModel = this.getView().getModel("HolidayModel") || new sap.ui.model.json.JSONModel({ data: [] });
+            const aData = oChartModel.getProperty("/data") || [];
+        
+            const month = sDate.substring(0, 7); // YYYY-MM
+            const existing = aData.find(item => item.month === month);
+        
+            if (existing) {
+                existing.count += 1;
+            } else {
+                aData.push({ month: month, count: 1 });
+            }
+        
+            oChartModel.setProperty("/data", aData);
+            this.getView().setModel(oChartModel, "HolidayModel");
         }
+        
 
 
 
