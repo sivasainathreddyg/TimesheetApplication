@@ -9,7 +9,7 @@ sap.ui.define([
     return Controller.extend("timesheetapp.controller.View1", {
         onInit: function () {
             var that = this;
-            var oData = {
+            // var oData = {
                 // employees: [
                 //     { name: "Nageswara", client: "Karlstorz", project: "KS US Support", clientId: "NRALLA.EXT" },
                 //     { name: "Raju Dasi", client: "Karlstorz", project: "KS US Support", clientId: "RDASI.EXT" },
@@ -26,7 +26,7 @@ sap.ui.define([
                 //     { month: "July" }, { month: "August" }, { month: "September" },
                 //     { month: "October" }, { month: "November" }, { month: "December" }
                 // ]
-            };
+            // };
             var oVizFrame = this.getView().byId("leaveChart");
             if (oVizFrame) {
                 oVizFrame.setVizProperties({
@@ -120,8 +120,8 @@ sap.ui.define([
                 });
             }
 
-            var oModel = new JSONModel(oData);
-            this.getView().setModel(oModel);
+            // var oModel = new JSONModel(oData);
+            // this.getView().setModel(oModel);
             that.RetriveEmployeeDetails();
         },
         RetriveEmployeeDetails: function () {
@@ -196,27 +196,6 @@ sap.ui.define([
             // var sYear = oView.byId("yearComboBox").getSelectedKey();
             // var sMonth = oView.byId("monthComboBox").getSelectedKey();
             if (!sYear || !sMonth) return;
-            // var oModel = this.getOwnerComponent().getModel();
-            // var that = this;
-
-            // oModel.callFunction("/CheckingEmployeeEnddate", {
-            //     method: "GET",
-            //     urlParameters:{selecteddate:date},
-            //     success: function (oData) {
-            //         try {
-            //             var parsedData = JSON.parse(oData.CheckingEmployeeEnddate); // Parse the JSON string returned from the backend
-            //             var oEmployeeModel = new JSONModel(parsedData);
-            //             that.getView().setModel(oEmployeeModel, "EmployeeModel"); // Set model to the view
-            //             // OTable.setBusy(false);
-            //         } catch (error) {
-            //             sap.m.MessageToast.show("Error parsing employee data.");
-            //             // OTable.setBusy(false);
-            //         }
-            //     },
-            //     error: function (err) {
-            //         sap.m.MessageToast.show("Failed to retrieve employee details.");
-            //     }
-            // });
 
             var oTable = oView.byId("timesheetTable");
             oTable.destroyColumns();
@@ -426,6 +405,7 @@ sap.ui.define([
             var oRow = oInput.getParent(); // Get the row
             var iTotal = 0;
             var iLeaveCount = 0;
+            var clientHolidayCount = 0;
 
             oRow.getCells().forEach(function (oCell, index, aCells) {
                 if (index > 0 && index < aCells.length - 1) { //  Skip first (name) & last (total) columns
@@ -433,6 +413,9 @@ sap.ui.define([
 
                     if (sValue === "L") { //  Count only "L" as Leave
                         iLeaveCount++;
+                    } else if (sValue === "H") {
+                        clientHolidayCount++;
+
                     } else {
                         var iValue = parseInt(sValue, 10);
                         iTotal += isNaN(iValue) ? 0 : iValue;
@@ -454,11 +437,13 @@ sap.ui.define([
             aEmployees.forEach(function (oEmp) {
                 if (oEmp.NAME === sEmployeeName) {
                     oEmp.leaveCount = iLeaveCount; // Update leave count
+                    oEmp.clientHolidayCount = clientHolidayCount;
                 }
             });
 
             // oModel.setProperty("/employees", aEmployees);
             this.updateChartEmployeeLeaves();
+            this.updateChartclientHolidays();
         },
         updateChartEmployeeLeaves: function () {
             var oChart = this.getView().byId("leaveChart");

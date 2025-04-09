@@ -24,7 +24,7 @@ module.exports = srv => {
 
             const employees = await cds.transaction(req).run(
                 SELECT.from("TIMESHEETAPPLICATION_EMPLOYEEDETAILS")
-                    .where(`ENDDATE IS NULL OR ENDDATE >=`, today) // Include employees with no ENDDATE or future ENDDATE
+                    // .where(`ENDDATE IS NULL OR ENDDATE >=`, today) // Include employees with no ENDDATE or future ENDDATE
             );
 
             return JSON.stringify(employees.length > 0 ? employees : []); // Return filtered employees
