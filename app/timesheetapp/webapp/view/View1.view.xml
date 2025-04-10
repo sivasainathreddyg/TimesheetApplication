@@ -178,7 +178,7 @@
                     <ScrollContainer
                         width="100%"
                         horizontal="true"
-                        height="100%"
+                        
                     >
                         <Table
                             id="timesheetTable"
@@ -186,18 +186,22 @@
                             width="auto"
                             class="sapUiResponsiveMargin"
                         />
+                        </ScrollContainer>
                         <!-- 📅 Calendar to select holidays -->
-                        <Panel
+                        <!-- <Panel
                             headerText="Client Holidays"
                             expandable="true"
                             expanded="false"
-                        >
+                        > -->
+                        <FlexBox justifyContent="End"  class="sapUiTinyMarginEnd">
                             <DatePicker
                                 id="clientHolidayPicker"
                                 change="onClientHolidaySelected"
                                 placeholder="Select Client Holiday"
+                                
                             />
-                        </Panel>
+                            </FlexBox>
+                        <!-- </Panel> -->
 
                         <!-- 📊 Chart for Holidays -->
                         <viz:VizFrame
@@ -237,7 +241,7 @@
                                 />
                             </viz:feeds>
                         </viz:VizFrame>
-                    </ScrollContainer>
+                    
                 </content>
             </Page>
         </detailPages>

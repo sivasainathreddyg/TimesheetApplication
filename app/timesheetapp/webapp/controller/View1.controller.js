@@ -10,22 +10,22 @@ sap.ui.define([
         onInit: function () {
             var that = this;
             // var oData = {
-                // employees: [
-                //     { name: "Nageswara", client: "Karlstorz", project: "KS US Support", clientId: "NRALLA.EXT" },
-                //     { name: "Raju Dasi", client: "Karlstorz", project: "KS US Support", clientId: "RDASI.EXT" },
-                //     { name: "Pavan kumar Bassa", client: "Karlstorz", project: "KS US Support", clientId: "SAPAVNB.EXT" },
-                //     { name: "Rakesh Gattu", client: "Karlstorz", project: "KS US Support", clientId: "RAGATTU.EXT" },
-                //     { name: "Mohan pentakota", client: "Karlstorz", project: "KS US Support", clientId: "MOPENTAK.EXT" }
-                // ],
-                // years: [
-                //     { year: "2025" }, { year: "2026" }, { year: "2027" }
-                // ],
-                // months: [
-                //     { month: "January" }, { month: "February" }, { month: "March" },
-                //     { month: "April" }, { month: "May" }, { month: "June" },
-                //     { month: "July" }, { month: "August" }, { month: "September" },
-                //     { month: "October" }, { month: "November" }, { month: "December" }
-                // ]
+            // employees: [
+            //     { name: "Nageswara", client: "Karlstorz", project: "KS US Support", clientId: "NRALLA.EXT" },
+            //     { name: "Raju Dasi", client: "Karlstorz", project: "KS US Support", clientId: "RDASI.EXT" },
+            //     { name: "Pavan kumar Bassa", client: "Karlstorz", project: "KS US Support", clientId: "SAPAVNB.EXT" },
+            //     { name: "Rakesh Gattu", client: "Karlstorz", project: "KS US Support", clientId: "RAGATTU.EXT" },
+            //     { name: "Mohan pentakota", client: "Karlstorz", project: "KS US Support", clientId: "MOPENTAK.EXT" }
+            // ],
+            // years: [
+            //     { year: "2025" }, { year: "2026" }, { year: "2027" }
+            // ],
+            // months: [
+            //     { month: "January" }, { month: "February" }, { month: "March" },
+            //     { month: "April" }, { month: "May" }, { month: "June" },
+            //     { month: "July" }, { month: "August" }, { month: "September" },
+            //     { month: "October" }, { month: "November" }, { month: "December" }
+            // ]
             // };
             var oVizFrame = this.getView().byId("leaveChart");
             if (oVizFrame) {
@@ -465,71 +465,414 @@ sap.ui.define([
         },
 
 
+        // OnDownloaddata: async function (oEvent) {
+        //     try {
+        //         const oDate = this.getView().byId("Datepickeridfortable").getDateValue();
+        //         // let sSelectedMonth = new Date().toLocaleString("default", { month: "long" });
+        //         // let sSelectedYear = new Date().getFullYear();
+
+        //         if (oDate) {
+        //             var sSelectedMonth = oDate.toLocaleString("default", { month: "long" });
+        //             var sSelectedYear = oDate.getFullYear();
+        //         }
+
+        //         this.getView().byId("SplitContDemo").setBusyIndicatorDelay(0);
+        //         this.getView().byId("SplitContDemo").setBusy(true);
+
+        //         const oEmployeeTable = this.getView().byId("employeeTable");
+        //         const oTimesheetTable = this.getView().byId("timesheetTable");
+        //         const oVizFrame = this.getView().byId("leaveChart");
+        //         const oVizFrameclient = this.getView().byId("clientHolidayChart");
+
+        //         const aEmployeeRows = oEmployeeTable.getItems();
+        //         const aTimesheetRows = oTimesheetTable.getItems();
+        //         const aColumns = oTimesheetTable.getColumns();
+
+        //         if (!aEmployeeRows.length || !aTimesheetRows.length) {
+        //             sap.m.MessageToast.show("No data available to download.");
+        //             this.getView().byId("SplitContDemo").setBusy(false);
+        //             return;
+        //         }
+
+        //         // Create workbook and worksheet
+        //         const workbook = new ExcelJS.Workbook();
+        //         const worksheet = workbook.addWorksheet("Timesheet");
+
+        //         const aHeaderRow = ["Name", "Client", "Project", "Client ID"];
+        //         const aDates = [];
+        //         const aWeekendColumns = [];
+
+        //         // Extract headers
+        //         for (let i = 1; i < aColumns.length - 1; i++) {
+        //             const sDateHeader = aColumns[i].getHeader().getText();
+        //             aHeaderRow.push(sDateHeader);
+        //             aDates.push(sDateHeader);
+
+        //             const oDate = new Date(`${sSelectedYear} ${sDateHeader}`);
+        //             if (oDate.getDay() === 6 || oDate.getDay() === 0) {
+        //                 aWeekendColumns.push(sDateHeader);
+        //             }
+        //         }
+
+        //         aHeaderRow.push("Total");
+
+        //         // Title Row
+        //         const titleRow = worksheet.addRow([`Timesheet - ${sSelectedMonth} ${sSelectedYear}`]);
+        //         titleRow.getCell(1).font = { bold: true, size: 14 };
+        //         worksheet.mergeCells(`A1:${String.fromCharCode(65 + aHeaderRow.length - 1)}1`);
+        //         worksheet.addRow([]); // Empty row
+
+        //         // Header Row Styling
+        //         const headerRow = worksheet.addRow(aHeaderRow);
+        //         headerRow.eachCell((cell) => {
+        //             cell.font = { bold: true, color: { argb: "FFFFFF" } };
+        //             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4F81BD" } };
+        //             cell.alignment = { horizontal: "center" };
+        //         });
+
+        //         worksheet.eachRow((row) => {
+        //             row.eachCell((cell, colIndex) => {
+        //                 const sColumnHeader = aHeaderRow[colIndex - 1];
+        //                 if (aWeekendColumns.includes(sColumnHeader)) {
+        //                     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "D3D3D3" } };
+        //                 }
+        //             });
+        //         });
+
+        //         const aData = [];
+
+        //         aTimesheetRows.forEach((oTimesheetRow, index) => {
+        //             const aEmployeeCells = aEmployeeRows[index].getCells();
+        //             const aTimesheetCells = oTimesheetRow.getCells();
+
+        //             const aRowData = [
+        //                 aEmployeeCells[0].getText(),
+        //                 aEmployeeCells[1].getText(),
+        //                 aEmployeeCells[2].getText(),
+        //                 aEmployeeCells[3].getText()
+        //             ];
+
+        //             for (let j = 1; j < aTimesheetCells.length; j++) {
+        //                 const oCell = aTimesheetCells[j];
+        //                 let sCellValue = "";
+
+        //                 if (oCell.getMetadata().getName() === "sap.m.Input") {
+        //                     sCellValue = oCell.getValue();
+        //                 } else if (oCell.getMetadata().getName() === "sap.m.Text") {
+        //                     sCellValue = oCell.getText();
+        //                 }
+        //                 aRowData.push(sCellValue);
+        //             }
+        //             aData.push(aRowData);
+        //         });
+
+        //         // Add data rows
+        //         aData.forEach((row) => {
+        //             const excelRow = worksheet.addRow(row);
+        //             excelRow.eachCell((cell) => {
+        //                 cell.alignment = { horizontal: "center" };
+        //             });
+        //         });
+
+        //         // Chart image export
+        //         const loadChartImage = async (vizFrame) => {
+        //             return new Promise((resolve) => {
+        //                 if (!vizFrame) return resolve(null);
+
+        //                 const sSVG = vizFrame.exportToSVGString();
+        //                 const canvas = document.createElement("canvas");
+        //                 const ctx = canvas.getContext("2d");
+        //                 const img = new Image();
+
+        //                 img.onload = function () {
+        //                     canvas.width = img.width;
+        //                     canvas.height = img.height;
+        //                     ctx.drawImage(img, 0, 0);
+        //                     resolve(canvas.toDataURL("image/png"));
+        //                 };
+        //                 img.src = "data:image/svg+xml;base64," + btoa(sSVG);
+        //             });
+        //         };
+
+        //         const [chartImage1, chartImage2] = await Promise.all([
+        //             loadChartImage(oVizFrame),
+        //             loadChartImage(oVizFrameclient)
+        //         ]);
+
+        //         if (chartImage1) {
+        //             const imageId1 = workbook.addImage({
+        //                 base64: chartImage1.split(",")[1],
+        //                 extension: "png"
+        //             });
+        //             worksheet.addImage(imageId1, {
+        //                 tl: { col: 5, row: aData.length + 7 },
+        //                 ext: { width: 500, height: 300 }
+        //             });
+        //         }
+
+        //         if (chartImage2) {
+        //             const imageId2 = workbook.addImage({
+        //                 base64: chartImage2.split(",")[1],
+        //                 extension: "png"
+        //             });
+        //             worksheet.addImage(imageId2, {
+        //                 tl: { col: 12, row: aData.length + 7 },
+        //                 ext: { width: 500, height: 300 }
+        //             });
+        //         }
+
+        //         // Save Excel
+        //         const buffer = await workbook.xlsx.writeBuffer();
+        //         const blob = new Blob([buffer], {
+        //             type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        //         });
+        //         saveAs(blob, "Timesheet.xlsx");
+
+        //         this.getView().byId("SplitContDemo").setBusy(false);
+
+        //     } catch (error) {
+        //         console.error("Error generating Excel:", error);
+        //         sap.m.MessageToast.show("Error generating Excel file.");
+        //         this.getView().byId("SplitContDemo").setBusy(false);
+        //     }
+        // },
+
+        // OnDownloaddata: async function (oEvent) {
+        //     try {
+        //         const oDate = this.getView().byId("Datepickeridfortable").getDateValue();
+        //         if (!oDate) {
+        //             sap.m.MessageToast.show("Please select a date first.");
+        //             return;
+        //         }
+
+        //         const sSelectedMonth = oDate.toLocaleString("default", { month: "long" });
+        //         const sSelectedYear = oDate.getFullYear();
+
+        //         const oView = this.getView();
+        //         oView.byId("SplitContDemo").setBusyIndicatorDelay(0);
+        //         oView.byId("SplitContDemo").setBusy(true);
+
+        //         const oEmployeeTable = oView.byId("employeeTable");
+        //         const oTimesheetTable = oView.byId("timesheetTable");
+        //         const oClientHolidayTable = oView.byId("clientHolidayTable"); // optional
+
+        //         const aEmployeeRows = oEmployeeTable.getItems();
+        //         const aTimesheetRows = oTimesheetTable.getItems();
+        //         const aColumns = oTimesheetTable.getColumns();
+
+        //         if (!aEmployeeRows.length || !aTimesheetRows.length) {
+        //             sap.m.MessageToast.show("No data available to download.");
+        //             oView.byId("SplitContDemo").setBusy(false);
+        //             return;
+        //         }
+
+        //         // Create Excel workbook
+        //         const workbook = new ExcelJS.Workbook();
+        //         const worksheet = workbook.addWorksheet("Timesheet");
+
+        //         const aHeaderRow = ["Name", "Client", "Project", "Client ID"];
+        //         const aDates = [];
+        //         const aWeekendColumns = [];
+
+        //         for (let i = 1; i < aColumns.length - 1; i++) {
+        //             const sDateHeader = aColumns[i].getHeader().getText();
+        //             aHeaderRow.push(sDateHeader);
+        //             aDates.push(sDateHeader);
+
+        //             const date = new Date(`${sSelectedYear} ${sDateHeader}`);
+        //             if (date.getDay() === 0 || date.getDay() === 6) {
+        //                 aWeekendColumns.push(sDateHeader);
+        //             }
+        //         }
+
+        //         aHeaderRow.push("Total");
+
+        //         // Title Row
+        //         const titleRow = worksheet.addRow([`Timesheet - ${sSelectedMonth} ${sSelectedYear}`]);
+        //         titleRow.getCell(1).font = { bold: true, size: 14 };
+        //         worksheet.mergeCells(`A1:${String.fromCharCode(65 + aHeaderRow.length - 1)}1`);
+        //         worksheet.addRow([]); // Empty row
+
+        //         // Header Row
+        //         const headerRow = worksheet.addRow(aHeaderRow);
+        //         headerRow.eachCell((cell) => {
+        //             cell.font = { bold: true, color: { argb: "FFFFFF" } };
+        //             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4F81BD" } };
+        //             cell.alignment = { horizontal: "center" };
+        //         });
+
+        //         worksheet.eachRow((row) => {
+        //             row.eachCell((cell, colIndex) => {
+        //                 const sColumnHeader = aHeaderRow[colIndex - 1];
+        //                 if (aWeekendColumns.includes(sColumnHeader)) {
+        //                     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "D3D3D3" } };
+        //                 }
+        //             });
+        //         });
+
+        //         // Add data rows
+        //         const aData = [];
+        //         const aLeaveSummary = [];
+        //         let totalLeaves = 0;
+
+        //         aTimesheetRows.forEach((oTimesheetRow, index) => {
+        //             const aEmployeeCells = aEmployeeRows[index].getCells();
+        //             const aTimesheetCells = oTimesheetRow.getCells();
+
+        //             const aRowData = [
+        //                 aEmployeeCells[0].getText(),
+        //                 aEmployeeCells[1].getText(),
+        //                 aEmployeeCells[2].getText(),
+        //                 aEmployeeCells[3].getText()
+        //             ];
+
+        //             let leaveCount = 0;
+
+        //             for (let j = 1; j < aTimesheetCells.length - 1; j++) {
+        //                 const oCell = aTimesheetCells[j];
+        //                 let sCellValue = "";
+
+        //                 if (oCell.getMetadata().getName() === "sap.m.Input") {
+        //                     sCellValue = oCell.getValue();
+        //                 } else if (oCell.getMetadata().getName() === "sap.m.Text") {
+        //                     sCellValue = oCell.getText();
+        //                 }
+
+        //                 aRowData.push(sCellValue);
+
+        //                 if (sCellValue.trim() === "L") {
+        //                     leaveCount++;
+        //                 }
+        //             }
+
+        //             // Add total cell
+        //             const oTotalCell = aTimesheetCells[aTimesheetCells.length - 1];
+        //             if (oTotalCell.getMetadata().getName() === "sap.m.Input") {
+        //                 aRowData.push(oTotalCell.getValue());
+        //             } else {
+        //                 aRowData.push(oTotalCell.getText());
+        //             }
+
+        //             aData.push(aRowData);
+        //             aLeaveSummary.push([aEmployeeCells[0].getText(), leaveCount]);
+        //             totalLeaves += leaveCount;
+        //         });
+
+        //         // Insert timesheet data
+        //         aData.forEach((row) => {
+        //             const excelRow = worksheet.addRow(row);
+        //             excelRow.eachCell((cell) => {
+        //                 cell.alignment = { horizontal: "center" };
+        //             });
+        //         });
+
+        //         worksheet.addRow([]); // Spacer row
+
+        //         // Leave Summary Table
+        //         worksheet.addRow(["Leave Summary"]).font = { bold: true, size: 12 };
+        //         worksheet.addRow(["Employee Name", "Leaves"]).font = { bold: true, size: 12 };
+
+        //         aLeaveSummary.forEach((row) => {
+        //             const summaryRow = worksheet.addRow(row);
+        //             summaryRow.eachCell((cell) => {
+        //                 cell.alignment = { horizontal: "center" };
+        //             });
+        //         });
+
+        //         // Total and Client Holidays
+        //         worksheet.addRow(["Total", totalLeaves]).font = { bold: true, size: 12 };
+
+        //         // Count client holidays dynamically
+        //         let iClientHolidayCount = 0;
+        //         const oVizFrameclient = this.getView().byId("clientHolidayChart");
+        //         if (oVizFrameclient) {
+        //             const oDataModel = oVizFrameclient.getModel();
+        //             const oData = oDataModel ? oDataModel.getData() : null;
+        //             iClientHolidayCount = oData[0].clientHolidayCount;
+                    
+        //         }
+
+
+        //         worksheet.addRow(["Client Holidays", iClientHolidayCount]).font = { bold: true };
+
+        //         // Download file
+        //         const buffer = await workbook.xlsx.writeBuffer();
+        //         const blob = new Blob([buffer], {
+        //             type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        //         });
+        //         saveAs(blob, "Timesheet.xlsx");
+
+        //         oView.byId("SplitContDemo").setBusy(false);
+
+        //     } catch (error) {
+        //         console.error("Error generating Excel:", error);
+        //         sap.m.MessageToast.show("Error generating Excel file.");
+        //         this.getView().byId("SplitContDemo").setBusy(false);
+        //     }
+        // },
+
         OnDownloaddata: async function (oEvent) {
             try {
                 const oDate = this.getView().byId("Datepickeridfortable").getDateValue();
-                // let sSelectedMonth = new Date().toLocaleString("default", { month: "long" });
-                // let sSelectedYear = new Date().getFullYear();
-
-                if (oDate) {
-                    var sSelectedMonth = oDate.toLocaleString("default", { month: "long" });
-                    var sSelectedYear = oDate.getFullYear();
+                if (!oDate) {
+                    sap.m.MessageToast.show("Please select a date first.");
+                    return;
                 }
-
-                this.getView().byId("SplitContDemo").setBusyIndicatorDelay(0);
-                this.getView().byId("SplitContDemo").setBusy(true);
-
-                const oEmployeeTable = this.getView().byId("employeeTable");
-                const oTimesheetTable = this.getView().byId("timesheetTable");
-                const oVizFrame = this.getView().byId("leaveChart");
-                const oVizFrameclient = this.getView().byId("clientHolidayChart");
-
+        
+                const sSelectedMonth = oDate.toLocaleString("default", { month: "long" });
+                const sSelectedYear = oDate.getFullYear();
+        
+                const oView = this.getView();
+                oView.byId("SplitContDemo").setBusyIndicatorDelay(0);
+                oView.byId("SplitContDemo").setBusy(true);
+        
+                const oEmployeeTable = oView.byId("employeeTable");
+                const oTimesheetTable = oView.byId("timesheetTable");
+        
                 const aEmployeeRows = oEmployeeTable.getItems();
                 const aTimesheetRows = oTimesheetTable.getItems();
                 const aColumns = oTimesheetTable.getColumns();
-
+        
                 if (!aEmployeeRows.length || !aTimesheetRows.length) {
                     sap.m.MessageToast.show("No data available to download.");
-                    this.getView().byId("SplitContDemo").setBusy(false);
+                    oView.byId("SplitContDemo").setBusy(false);
                     return;
                 }
-
-                // Create workbook and worksheet
+        
                 const workbook = new ExcelJS.Workbook();
                 const worksheet = workbook.addWorksheet("Timesheet");
-
+        
                 const aHeaderRow = ["Name", "Client", "Project", "Client ID"];
                 const aDates = [];
                 const aWeekendColumns = [];
-
-                // Extract headers
+        
                 for (let i = 1; i < aColumns.length - 1; i++) {
                     const sDateHeader = aColumns[i].getHeader().getText();
                     aHeaderRow.push(sDateHeader);
                     aDates.push(sDateHeader);
-
-                    const oDate = new Date(`${sSelectedYear} ${sDateHeader}`);
-                    if (oDate.getDay() === 6 || oDate.getDay() === 0) {
+        
+                    const date = new Date(`${sSelectedYear} ${sDateHeader}`);
+                    if (date.getDay() === 0 || date.getDay() === 6) {
                         aWeekendColumns.push(sDateHeader);
                     }
                 }
-
+        
                 aHeaderRow.push("Total");
-
+        
                 // Title Row
                 const titleRow = worksheet.addRow([`Timesheet - ${sSelectedMonth} ${sSelectedYear}`]);
                 titleRow.getCell(1).font = { bold: true, size: 14 };
                 worksheet.mergeCells(`A1:${String.fromCharCode(65 + aHeaderRow.length - 1)}1`);
                 worksheet.addRow([]); // Empty row
-
-                // Header Row Styling
+        
+                // Header Row
                 const headerRow = worksheet.addRow(aHeaderRow);
                 headerRow.eachCell((cell) => {
                     cell.font = { bold: true, color: { argb: "FFFFFF" } };
                     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "4F81BD" } };
                     cell.alignment = { horizontal: "center" };
                 });
-
+        
                 worksheet.eachRow((row) => {
                     row.eachCell((cell, colIndex) => {
                         const sColumnHeader = aHeaderRow[colIndex - 1];
@@ -538,104 +881,120 @@ sap.ui.define([
                         }
                     });
                 });
-
+        
+                // Add data rows
                 const aData = [];
-
+                const aLeaveSummary = [];
+                let totalLeaves = 0;
+        
                 aTimesheetRows.forEach((oTimesheetRow, index) => {
                     const aEmployeeCells = aEmployeeRows[index].getCells();
                     const aTimesheetCells = oTimesheetRow.getCells();
-
+        
                     const aRowData = [
                         aEmployeeCells[0].getText(),
                         aEmployeeCells[1].getText(),
                         aEmployeeCells[2].getText(),
                         aEmployeeCells[3].getText()
                     ];
-
-                    for (let j = 1; j < aTimesheetCells.length; j++) {
+        
+                    let leaveCount = 0;
+        
+                    for (let j = 1; j < aTimesheetCells.length - 1; j++) {
                         const oCell = aTimesheetCells[j];
                         let sCellValue = "";
-
+        
                         if (oCell.getMetadata().getName() === "sap.m.Input") {
                             sCellValue = oCell.getValue();
                         } else if (oCell.getMetadata().getName() === "sap.m.Text") {
                             sCellValue = oCell.getText();
                         }
+        
                         aRowData.push(sCellValue);
+        
+                        if (sCellValue.trim() === "L") {
+                            leaveCount++;
+                        }
                     }
+        
+                    const oTotalCell = aTimesheetCells[aTimesheetCells.length - 1];
+                    if (oTotalCell.getMetadata().getName() === "sap.m.Input") {
+                        aRowData.push(oTotalCell.getValue());
+                    } else {
+                        aRowData.push(oTotalCell.getText());
+                    }
+        
                     aData.push(aRowData);
+                    aLeaveSummary.push([aEmployeeCells[0].getText(), leaveCount]);
+                    totalLeaves += leaveCount;
                 });
-
-                // Add data rows
+        
+                // Insert timesheet data rows
                 aData.forEach((row) => {
                     const excelRow = worksheet.addRow(row);
                     excelRow.eachCell((cell) => {
                         cell.alignment = { horizontal: "center" };
                     });
                 });
-
-                // Chart image export
-                const loadChartImage = async (vizFrame) => {
-                    return new Promise((resolve) => {
-                        if (!vizFrame) return resolve(null);
-
-                        const sSVG = vizFrame.exportToSVGString();
-                        const canvas = document.createElement("canvas");
-                        const ctx = canvas.getContext("2d");
-                        const img = new Image();
-
-                        img.onload = function () {
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                            ctx.drawImage(img, 0, 0);
-                            resolve(canvas.toDataURL("image/png"));
-                        };
-                        img.src = "data:image/svg+xml;base64," + btoa(sSVG);
-                    });
-                };
-
-                const [chartImage1, chartImage2] = await Promise.all([
-                    loadChartImage(oVizFrame),
-                    loadChartImage(oVizFrameclient)
-                ]);
-
-                if (chartImage1) {
-                    const imageId1 = workbook.addImage({
-                        base64: chartImage1.split(",")[1],
-                        extension: "png"
-                    });
-                    worksheet.addImage(imageId1, {
-                        tl: { col: 5, row: aData.length + 7 },
-                        ext: { width: 500, height: 300 }
-                    });
+        
+                // Add 3 spacer rows
+                worksheet.addRow([]);
+                worksheet.addRow([]);
+                worksheet.addRow([]);
+        
+                // Add Leave Summary table starting at column G
+                const startCol = 7;
+                const startRow = worksheet.lastRow.number + 1;
+        
+                worksheet.getCell(startRow, startCol).value = "Leave Summary";
+                worksheet.getCell(startRow, startCol).font = { bold: true, size: 12 };
+        
+                worksheet.getCell(startRow + 1, startCol).value = "Employee Name";
+                worksheet.getCell(startRow + 1, startCol + 1).value = "Leaves";
+                worksheet.getCell(startRow + 1, startCol).font = { bold: true };
+                worksheet.getCell(startRow + 1, startCol + 1).font = { bold: true };
+        
+                aLeaveSummary.forEach((row, index) => {
+                    worksheet.getCell(startRow + 2 + index, startCol).value = row[0];
+                    worksheet.getCell(startRow + 2 + index, startCol + 1).value = row[1];
+                });
+        
+                // Total Leaves
+                const totalRow = startRow + 2 + aLeaveSummary.length;
+                worksheet.getCell(totalRow, startCol).value = "Total";
+                worksheet.getCell(totalRow, startCol).font = { bold: true };
+                worksheet.getCell(totalRow, startCol + 1).value = totalLeaves;
+        
+                // Client Holidays (unique, not per employee)
+                let iClientHolidayCount = 0;
+                const oVizFrameclient = this.getView().byId("clientHolidayChart");
+                if (oVizFrameclient) {
+                    const oDataModel = oVizFrameclient.getModel();
+                    const oData = oDataModel ? oDataModel.getData() : null;
+                    iClientHolidayCount = oData[0].clientHolidayCount;
                 }
 
-                if (chartImage2) {
-                    const imageId2 = workbook.addImage({
-                        base64: chartImage2.split(",")[1],
-                        extension: "png"
-                    });
-                    worksheet.addImage(imageId2, {
-                        tl: { col: 12, row: aData.length + 7 },
-                        ext: { width: 500, height: 300 }
-                    });
-                }
-
-                // Save Excel
+                
+        
+                worksheet.getCell(totalRow + 1, startCol).value = "Client Holidays";
+                worksheet.getCell(totalRow + 1, startCol).font = { bold: true };
+                worksheet.getCell(totalRow + 1, startCol + 1).value = iClientHolidayCount;
+        
+                // Export Excel file
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], {
                     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 });
                 saveAs(blob, "Timesheet.xlsx");
-
-                this.getView().byId("SplitContDemo").setBusy(false);
-
+        
+                oView.byId("SplitContDemo").setBusy(false);
+        
             } catch (error) {
                 console.error("Error generating Excel:", error);
                 sap.m.MessageToast.show("Error generating Excel file.");
                 this.getView().byId("SplitContDemo").setBusy(false);
             }
-        },
+        },        
 
         onCreateEmployee: function () {
             if (!this.oDialog) {
